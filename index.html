@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>抽一張感恩話籤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E7EBE1; --bg2:#F3F1E8; --ink:#3F4A36; --soft:#6E7A62;
+  --gold:#B58A4C; --back:#8FA283; --back2:#7B8F6F; --line:#D8CFB8;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1F241D; --bg2:#2A3027; --ink:#E9E6D8; --soft:#AEB59F;
+    --gold:#D5AE70; --back:#55684C; --back2:#46573F; --line:#4A5242; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1F241D; --bg2:#2A3027; --ink:#E9E6D8; --soft:#AEB59F;
+  --gold:#D5AE70; --back:#55684C; --back2:#46573F; --line:#4A5242; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;min-height:100%}
+body{
+  background:radial-gradient(ellipse at 50% 0%,var(--bg2),var(--bg) 70%) fixed;
+  background-color:var(--bg);
+  color:var(--ink);
+  font-family:"Noto Serif TC","Songti TC","PMingLiU","Noto Serif CJK TC",serif;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;padding:2.5rem 1rem 2rem;overflow-x:hidden;
+}
+header{text-align:center;max-width:30rem}
+h1{font-weight:600;font-size:clamp(1.6rem,5vw,2.2rem);letter-spacing:.18em;margin:0 0 .6rem}
+header p{margin:0;color:var(--soft);line-height:1.9;letter-spacing:.06em;font-size:1rem}
+
+.fan{position:relative;width:min(560px,100%);height:340px;margin:2.5rem auto 0}
+.card{
+  position:absolute;left:50%;bottom:0;width:92px;height:276px;margin-left:-46px;
+  transform-origin:50% 115%;
+  transform:rotate(var(--a)) translateY(0);
+  transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .4s;
+  border:0;padding:0;cursor:pointer;background:none;border-radius:8px;
+}
+.back{
+  width:100%;height:100%;border-radius:8px;
+  background:linear-gradient(160deg,var(--back),var(--back2));
+  box-shadow:0 6px 18px rgba(40,50,30,.22);
+  display:flex;align-items:center;justify-content:center;position:relative;
+}
+.back::before{content:"";position:absolute;inset:7px;border:1px solid rgba(255,240,205,.55);border-radius:4px}
+.back svg{width:38px;height:38px;opacity:.85}
+.back span{position:absolute;bottom:26px;writing-mode:vertical-rl;color:#F6EEDA;font-size:.8rem;letter-spacing:.4em;opacity:.9}
+.card:hover,.card:focus-visible{transform:rotate(var(--a)) translateY(-18px)}
+.card:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.card.used .back{filter:saturate(.3) brightness(1.05);opacity:.55}
+.card.lift{transform:rotate(0deg) translateY(-60px) scale(1.06);z-index:20}
+.fan.shuffle .card{animation:jiggle .5s ease-in-out 2}
+@keyframes jiggle{50%{transform:rotate(calc(var(--a) * .2)) translateY(-6px)}}
+
+.actions{display:flex;flex-direction:column;align-items:center;gap:.8rem;margin-top:2.2rem}
+.btn{
+  font:inherit;font-size:1.05rem;letter-spacing:.2em;
+  padding:.85rem 2.4rem;border-radius:999px;cursor:pointer;
+  background:var(--gold);color:#fff;border:0;
+  box-shadow:0 4px 14px rgba(150,110,50,.3);transition:transform .2s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.hint{color:var(--soft);font-size:.9rem;letter-spacing:.05em}
+
+/* reveal */
+.overlay{
+  position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(30,36,27,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;transition:opacity .35s;padding:1rem;
+  padding-top:calc(1rem + env(safe-area-inset-top,0px));padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px));
+}
+.overlay.open{opacity:1;pointer-events:auto}
+.stage{perspective:1200px;height:min(66vh,600px);aspect-ratio:1/3}
+.flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,.7,.2,1)}
+.overlay.flipped .flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.face.front{transform:rotateY(180deg);background:#FBF8F0}
+.face.front img{width:100%;height:100%;display:block;object-fit:cover}
+.face .back{border-radius:12px}
+.face .back svg{width:64px;height:64px}
+.face .back span{font-size:1.1rem;bottom:40px}
+.overlay .row{display:flex;gap:.8rem;margin-top:1.4rem;opacity:0;transition:opacity .4s .7s}
+.overlay.flipped .row{opacity:1}
+.overlay .btn.ghost{color:#F6EEDA;border-color:rgba(246,238,218,.5)}
+.overlay .row{flex-wrap:wrap;justify-content:center}
+.btn[hidden]{display:none}
+.count{color:#E9E3CF;font-size:.85rem;margin-top:.8rem;letter-spacing:.08em;opacity:0;transition:opacity .4s .7s}
+.overlay.flipped .count{opacity:.85}
+
+@media (max-width:480px){
+  .fan{height:260px}
+  .card{width:68px;height:204px;margin-left:-34px}
+  .back svg{width:28px;height:28px}
+  .back span{font-size:.7rem;bottom:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>抽一張感恩話籤</h1>
+  <p>先安靜一下，深呼吸。<br>按下抽籤，或直接挑一張你有感覺的。</p>
+</header>
+
+<div class="fan" id="fan" aria-label="話籤"></div>
+
+<div class="actions">
+  <button class="btn" id="draw">隨機抽一張</button>
+  <span class="hint" id="hint">共 10 張，抽完前不會重複</span>
+</div>
+
+<div class="overlay" id="ov" role="dialog" aria-modal="true" aria-label="你抽到的話籤">
+  <div class="stage">
+    <div class="flip">
+      <div class="face"><div class="back"><svg viewBox="0 0 40 40" fill="none" stroke="#F6EEDA" stroke-width="1.4" stroke-linecap="round"><path d="M20 35V14"/><path d="M20 14c-6-2-9-7-8-11 5 0 9 4 8 11z"/><path d="M20 22c5-2 9-1 11 2-3 3-8 3-11-2z"/><path d="M20 26c-5-2-9-1-11 2 3 3 8 3 11-2z"/></svg><span>感恩話籤</span></div></div>
+      <div class="face front"><img id="pic" alt="感恩話籤"></div>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn" id="again">再抽一張</button>
+    <button class="btn ghost" id="dl">下載圖片</button>
+    <button class="btn ghost" id="close">收起</button>
+  </div>
+  <div class="count" id="count"></div>
+</div>
+
+<script>
+const IMGS = Array.from({length:10},(_,i)=>'images/'+(i+1)+'.png');
+const LEAF = `<svg viewBox="0 0 40 40" fill="none" stroke="#F6EEDA" stroke-width="1.4" stroke-linecap="round"><path d="M20 35V14"/><path d="M20 14c-6-2-9-7-8-11 5 0 9 4 8 11z"/><path d="M20 22c5-2 9-1 11 2-3 3-8 3-11-2z"/><path d="M20 26c-5-2-9-1-11 2 3 3 8 3 11-2z"/></svg>`;
+IMGS.forEach(s=>{const i=new Image();i.src=s;});
+const fan = document.getElementById('fan');
+const ov = document.getElementById('ov');
+const pic = document.getElementById('pic');
+const n = IMGS.length;
+let used = new Set();
+let busy = false;
+let current = 0;
+const dlBtn = document.getElementById('dl');
+const countEl = document.getElementById('count');
+let countText = '';
+function dlMsg(m){ countEl.textContent = m || countText; }
+dlBtn.onclick = ()=>{
+  const a = document.createElement('a');
+  a.href = IMGS[current];
+  a.download = '感恩話籤-'+(current+1)+'.png';
+  document.body.appendChild(a); a.click(); a.remove();
+  if(/iPhone|iPad|iPod/.test(navigator.userAgent)) dlMsg('若沒有自動下載，請長按圖片選「儲存影像」');
+};
+
+const cards = IMGS.map((src,i)=>{
+  const b = document.createElement('button');
+  b.className='card';
+  const a = (i-(n-1)/2)*7.5;
+  b.style.setProperty('--a',a+'deg');
+  b.style.zIndex=i;
+  b.setAttribute('aria-label','翻開第 '+(i+1)+' 張話籤');
+  b.innerHTML='<div class="back">'+LEAF+'<span>感恩話籤</span></div>';
+  b.addEventListener('click',()=>reveal(i));
+  fan.appendChild(b);
+  return b;
+});
+// shuffle mapping so card position ≠ image order
+let order = [...Array(n).keys()].sort(()=>Math.random()-.5);
+
+function updateHint(){
+  const left = n-used.size;
+  document.getElementById('hint').textContent = left===n ? '共 '+n+' 張，抽完前不會重複' : '還有 '+left+' 張沒翻開';
+}
+function randomPick(){
+  if(used.size>=n){ used.clear(); cards.forEach(c=>c.classList.remove('used')); order.sort(()=>Math.random()-.5); }
+  const pool=[...Array(n).keys()].filter(i=>!used.has(i));
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function reveal(i){
+  if(busy) return; busy=true;
+  if(used.size>=n){ used.clear(); cards.forEach(c=>c.classList.remove('used')); }
+  const card=cards[i];
+  card.classList.add('lift');
+  current = order[i];
+  pic.src = IMGS[current];
+  dlMsg('');
+  setTimeout(()=>{
+    ov.classList.add('open');
+    setTimeout(()=>ov.classList.add('flipped'),250);
+    used.add(i); card.classList.remove('lift'); card.classList.add('used');
+    const left=n-used.size;
+    countText = left ? '還有 '+left+' 張等你翻開' : '十張都翻完了，再抽會重新洗牌'; dlMsg('');
+    updateHint(); busy=false;
+    document.getElementById('again').focus();
+  },500);
+}
+function draw(){
+  if(busy) return;
+  fan.classList.add('shuffle');
+  setTimeout(()=>{fan.classList.remove('shuffle'); reveal(randomPick());},matchMedia('(prefers-reduced-motion:reduce)').matches?0:1000);
+}
+function closeOv(cb){
+  ov.classList.remove('flipped');
+  setTimeout(()=>{ov.classList.remove('open'); cb&&setTimeout(cb,350);},300);
+}
+document.getElementById('draw').onclick=draw;
+document.getElementById('again').onclick=()=>closeOv(draw);
+document.getElementById('close').onclick=()=>closeOv();
+ov.addEventListener('click',e=>{if(e.target===ov) closeOv();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('open')) closeOv();});
+</script>
+</body>
+</html>
